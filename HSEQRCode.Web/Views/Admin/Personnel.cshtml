@@ -1,0 +1,123 @@
+@model AdminPersonnelConfigViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "پرسنل مجاز - " + Model.DataSourceName;
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <div>
+        <h1 class="h4 fw-bold mb-1">مدیریت پرسنل مجاز: @Model.DataSourceName</h1>
+        <div class="small text-muted">تعیین بازرسانی که مجاز به مشاهده سوابق و ثبت بازرسی برای این منبع داده هستند</div>
+    </div>
+    <a href="@Url.Action("Index", "Admin")" class="btn-hse btn-hse-secondary">بازگشت</a>
+</div>
+
+<div class="admin-grid">
+    <div class="admin-col-7">
+        <div class="hse-card mb-3">
+            <h2 class="h6 fw-bold mb-3">تخصیص کاربر موجود به این منبع داده</h2>
+            @using (Html.BeginForm("AssignPersonnel", "Admin", FormMethod.Post, new { @class = "d-flex flex-wrap gap-2 align-items-end" }))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="dataSourceId" value="@Model.DataSourceId" />
+                <div class="flex-grow-1">
+                    <label class="hse-label" for="selectedUsername">انتخاب کاربر</label>
+                    <select id="selectedUsername" name="selectedUsername" class="hse-select hse-select2" required>
+                        <option value="">انتخاب کاربر...</option>
+                        @foreach (AppUserOptionViewModel u in Model.AvailableUsers)
+                        {
+                            <option value="@u.Username">@u.FullName (@u.Username) @(u.IsAdmin ? "- مدیر" : "")</option>
+                        }
+                    </select>
+                </div>
+                <button type="submit" class="btn-hse btn-hse-primary">افزودن به پرسنل مجاز</button>
+            }
+        </div>
+
+        <div class="hse-card">
+            <h2 class="h6 fw-bold mb-3">لیست پرسنل مجاز فعلی (@Model.AssignedPersonnel.Count)</h2>
+            @if (Model.AssignedPersonnel.Count == 0)
+            {
+                <div class="text-muted small py-2">هنوز کاربری به این منبع داده اختصاص نیافته است.</div>
+            }
+            else
+            {
+                <div class="rtl-table-wrap">
+                    <table class="rtl-table">
+                        <thead>
+                            <tr>
+                                <th>نام و نام خانوادگی</th>
+                                <th>نام کاربری</th>
+                                <th>تاریخ تخصیص</th>
+                                <th>وضعیت</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (FormPersonnelItemViewModel p in Model.AssignedPersonnel)
+                            {
+                                <tr>
+                                    <td class="fw-bold">@p.FullName</td>
+                                    <td class="ltr-isolate">@p.Username</td>
+                                    <td class="tabular-nums small text-muted">@p.AssignedAtJalali</td>
+                                    <td>
+                                        @if (p.IsActive)
+                                        {
+                                            <span class="status-badge status-badge--healthy">فعال</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-badge status-badge--danger">غیرفعال</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @using (Html.BeginForm("RemovePersonnel", "Admin", FormMethod.Post, new { @class = "m-0" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@p.Id" />
+                                            <input type="hidden" name="dataSourceId" value="@Model.DataSourceId" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('دسترسی این کاربر حذف شود؟');">حذف دسترسی</button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="admin-col-5">
+        <div class="hse-card">
+            <h2 class="h6 fw-bold mb-3">ایجاد کاربر جدید در سامانه</h2>
+            @using (Html.BeginForm("CreateUser", "Admin", FormMethod.Post, new { @class = "hse-form-grid" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.DataSourceId)
+
+                <div class="hse-field">
+                    <label class="hse-label hse-label--required" for="NewFullName">نام و نام خانوادگی</label>
+                    @Html.TextBoxFor(m => m.NewFullName, new { @class = "hse-input", placeholder = "مثال: علی رضایی", required = "required" })
+                </div>
+
+                <div class="hse-field">
+                    <label class="hse-label hse-label--required" for="NewUsername">نام کاربری</label>
+                    @Html.TextBoxFor(m => m.NewUsername, new { @class = "hse-input ltr-isolate text-start", placeholder = "ali.rezaei", required = "required" })
+                </div>
+
+                <div class="hse-field">
+                    <label class="hse-label hse-label--required" for="NewPassword">رمز عبور</label>
+                    @Html.PasswordFor(m => m.NewPassword, new { @class = "hse-input ltr-isolate text-start", required = "required" })
+                </div>
+
+                <label class="d-inline-flex align-items-center gap-2 small" style="cursor: pointer;">
+                    @Html.CheckBoxFor(m => m.NewUserIsAdmin, new { @class = "form-check-input m-0" })
+                    <span>دسترسی مدیر سیستم (Admin)</span>
+                </label>
+
+                <button type="submit" class="btn-hse btn-hse-accent btn-hse-block">ایجاد کاربر</button>
+            }
+        </div>
+    </div>
+</div>

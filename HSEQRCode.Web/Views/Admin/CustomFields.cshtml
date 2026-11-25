@@ -1,0 +1,200 @@
+@model AdminCustomFieldsViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "فیلدهای سفارشی - " + Model.DataSourceName;
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <div>
+        <h1 class="h4 fw-bold mb-1">مدیریت فیلدهای سفارشی: @Model.DataSourceName</h1>
+        <div class="small text-muted">فیلدهایی که پرسنل مجاز هنگام بازرسی تجهیز تکمیل می‌کنند</div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="@Url.Action("ConfigureBaseFields", "Admin", new { id = Model.DataSourceId })" class="btn-hse btn-hse-secondary">فیلدهای پایه</a>
+        <a href="@Url.Action("Indicators", "Admin", new { id = Model.DataSourceId })" class="btn-hse btn-hse-secondary">شناسه و QR</a>
+        <a href="@Url.Action("Index", "Admin")" class="btn-hse btn-hse-secondary">بازگشت</a>
+    </div>
+</div>
+
+<div class="admin-grid">
+    <div class="admin-col-7">
+        <div class="hse-card">
+            <h2 class="h6 fw-bold mb-3">فیلدهای تعریف‌شده (@Model.Fields.Count)</h2>
+            @if (Model.Fields.Count == 0)
+            {
+                <div class="text-muted small py-3">هنوز هیچ فیلد سفارشی تعریف نشده است.</div>
+            }
+            else
+            {
+                <div class="rtl-table-wrap">
+                    <table class="rtl-table">
+                        <thead>
+                            <tr>
+                                <th>ترتیب</th>
+                                <th>عنوان نمایشی</th>
+                                <th>نام سیستمی</th>
+                                <th>نوع</th>
+                                <th>الزامی</th>
+                                <th>نمایش عمومی</th>
+                                <th>حذف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (CustomFieldItemViewModel f in Model.Fields)
+                            {
+                                <tr>
+                                    <td class="tabular-nums">@f.DisplayOrder</td>
+                                    <td class="fw-bold">@f.Label</td>
+                                    <td><code class="ltr-isolate">@f.Name</code></td>
+                                    <td><span class="badge bg-light text-dark border">@f.FieldType</span></td>
+                                    <td>@(f.IsRequired ? "بله" : "خیر")</td>
+                                    <td>
+                                        @if (f.IsPublicVisible)
+                                        {
+                                            <span class="status-badge status-badge--healthy">عمومی</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-badge status-badge--info">پرسنلی</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @using (Html.BeginForm("DeleteCustomField", "Admin", FormMethod.Post, new { @class = "m-0" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@f.Id" />
+                                            <input type="hidden" name="dataSourceId" value="@Model.DataSourceId" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('آیا از حذف این فیلد مطمئن هستید؟');">حذف</button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="admin-col-5">
+        <div class="hse-card">
+            <h2 class="h6 fw-bold mb-3">افزودن فیلد سفارشی جدید</h2>
+
+            @using (Html.BeginForm("SaveCustomField", "Admin", FormMethod.Post, new { @class = "hse-form-grid" }))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" value="0" />
+                <input type="hidden" name="DataSourceId" value="@Model.DataSourceId" />
+
+                <div class="hse-field">
+                    <label class="hse-label hse-label--required" for="cf_Name">نام سیستمی (انگلیسی)</label>
+                    <input type="text" id="cf_Name" name="Name" class="hse-input ltr-isolate text-start" placeholder="مثال: PressureStatus" required />
+                </div>
+
+                <div class="hse-field">
+                    <label class="hse-label hse-label--required" for="cf_Label">عنوان نمایشی (فارسی)</label>
+                    <input type="text" id="cf_Label" name="Label" class="hse-input" placeholder="مثال: وضعیت فشار کپسول" required />
+                </div>
+
+                <div class="hse-form-grid hse-form-grid--2col">
+                    <div class="hse-field">
+                        <label class="hse-label" for="cf_FieldType">نوع فیلد</label>
+                        <select id="cf_FieldType" name="FieldType" class="hse-select js-custom-field-type">
+                            <option value="@((int)CustomFieldType.Text)">متن (Text)</option>
+                            <option value="@((int)CustomFieldType.Number)">عدد (Number)</option>
+                            <option value="@((int)CustomFieldType.Date)">تاریخ (Date)</option>
+                            <option value="@((int)CustomFieldType.Boolean)">دووضعیتی (Boolean)</option>
+                            <option value="@((int)CustomFieldType.Attachment)">پیوست فایل (Attachment)</option>
+                            <option value="@((int)CustomFieldType.Select)">انتخاب تکی (Select)</option>
+                            <option value="@((int)CustomFieldType.MultiSelect)">انتخاب چندتایی (MultiSelect)</option>
+                        </select>
+                    </div>
+
+                    <div class="hse-field">
+                        <label class="hse-label" for="cf_DisplayOrder">ترتیب نمایش</label>
+                        <input type="number" id="cf_DisplayOrder" name="DisplayOrder" class="hse-input tabular-nums" value="@Model.NewField.DisplayOrder" />
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-3">
+                    <label class="d-inline-flex align-items-center gap-2 small" style="cursor: pointer;">
+                        <input type="checkbox" name="IsRequired" value="true" class="form-check-input m-0" />
+                        <span>فیلد الزامی است</span>
+                    </label>
+                    <label class="d-inline-flex align-items-center gap-2 small" style="cursor: pointer;">
+                        <input type="checkbox" name="IsPublicVisible" value="true" class="form-check-input m-0" />
+                        <span>نمایش در اسکن عمومی</span>
+                    </label>
+                </div>
+
+                <div id="cfDateOptions" class="p-2 rounded border bg-light d-none">
+                    <label class="d-inline-flex align-items-center gap-2 small" style="cursor: pointer;">
+                        <input type="checkbox" name="IsGregorianDate" value="true" class="form-check-input m-0" />
+                        <span>استفاده از تاریخ میلادی به جای شمسی</span>
+                    </label>
+                </div>
+
+                <div id="cfBooleanOptions" class="p-3 rounded border bg-light d-none">
+                    <div class="small fw-bold mb-2">برچسب‌های دووضعیتی (Boolean)</div>
+                    <div class="hse-form-grid hse-form-grid--2col">
+                        <div class="hse-field">
+                            <label class="hse-label" for="cf_BooleanTrueLabel">برچسب مقدار مثبت</label>
+                            <input type="text" id="cf_BooleanTrueLabel" name="BooleanTrueLabel" class="hse-input" placeholder="مثال: سالم / دارد / بله" />
+                        </div>
+                        <div class="hse-field">
+                            <label class="hse-label" for="cf_BooleanFalseLabel">برچسب مقدار منفی</label>
+                            <input type="text" id="cf_BooleanFalseLabel" name="BooleanFalseLabel" class="hse-input" placeholder="مثال: ناسالم / ندارد / خیر" />
+                        </div>
+                    </div>
+                </div>
+
+                <div id="cfSelectOptions" class="p-3 rounded border bg-light d-none">
+                    <div class="hse-field mb-2">
+                        <label class="hse-label" for="cf_OptionsSourceType">منبع گزینه‌ها</label>
+                        <select id="cf_OptionsSourceType" name="OptionsSourceType" class="hse-select js-options-source-type">
+                            <option value="@((int)OptionsSourceType.Static)">لیست ثابت (Static)</option>
+                            <option value="@((int)OptionsSourceType.SqlView)">نمای SQL (SqlView)</option>
+                        </select>
+                    </div>
+
+                    <div id="cfStaticOptionsPanel" class="hse-field">
+                        <label class="hse-label" for="cf_StaticOptionsJson">گزینه‌ها (هر خط یک گزینه یا JSON)</label>
+                        <textarea id="cf_StaticOptionsJson" name="StaticOptionsJson" class="hse-textarea" placeholder='سالم&#10;نیاز به سرویس&#10;آسیب‌دیده'></textarea>
+                    </div>
+
+                    <div id="cfSqlViewOptionsPanel" class="hse-form-grid d-none">
+                        <div class="hse-field">
+                            <label class="hse-label" for="cf_OptionsViewName">نمای SQL گزینه‌ها</label>
+                            <select id="cf_OptionsViewName" name="OptionsViewName" class="hse-select js-options-view-select" data-columns-url="@Url.Content("~/api/meta/view-columns")">
+                                <option value="">انتخاب نما...</option>
+                                @foreach (ViewMetadataDto v in Model.NewField.AvailableViews)
+                                {
+                                    <option value="@v.FullViewName">@v.FullViewName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="hse-form-grid hse-form-grid--2col">
+                            <div class="hse-field">
+                                <label class="hse-label" for="cf_OptionsValueColumn">ستون مقدار (Value)</label>
+                                <input type="text" id="cf_OptionsValueColumn" name="OptionsValueColumn" class="hse-input ltr-isolate text-start" placeholder="Id" />
+                            </div>
+                            <div class="hse-field">
+                                <label class="hse-label" for="cf_OptionsDisplayColumn">ستون نمایشی (Display)</label>
+                                <input type="text" id="cf_OptionsDisplayColumn" name="OptionsDisplayColumn" class="hse-input ltr-isolate text-start" placeholder="Title" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary js-preview-options-btn" data-preview-url="@Url.Content("~/api/meta/preview-options")">
+                            پیش‌نمایش گزینه‌ها
+                        </button>
+                        <div class="js-preview-options-result small mt-2"></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-hse btn-hse-primary btn-hse-block">ذخیره فیلد سفارشی</button>
+            }
+        </div>
+    </div>
+</div>

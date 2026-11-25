@@ -1,0 +1,209 @@
+@model PersonnelInspectionViewModel
+@{
+    ViewBag.Title = "سوابق و ثبت بازرسی " + Model.Indicator;
+}
+
+<div class="d-flex align-items-center justify-content-between">
+    <a href="@Url.Action("ScanByIndicator", "Scan", new { indicator = Model.Indicator })" class="btn-hse btn-hse-secondary py-1 px-3" style="min-height: 36px;">
+        بازگشت به نمای عمومی
+    </a>
+    <span class="indicator-pill">@Model.Indicator</span>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+{
+    <div class="alert alert-success py-2 px-3 small mb-0" role="alert">@Model.SuccessMessage</div>
+}
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="alert alert-danger py-2 px-3 small mb-0" role="alert">@Model.ErrorMessage</div>
+}
+
+<section class="asset-hero-banner">
+    <div class="asset-hero-banner__top">
+        <div class="flex-grow-1">
+            <div class="small text-white-50 mb-1">@Model.DataSourceName</div>
+            <h1 class="h5 fw-bold text-white mb-0">
+                شناسه تجهیز: <span class="ltr-isolate tabular-nums">@Model.Indicator</span>
+            </h1>
+        </div>
+        <span class="badge bg-light text-dark ltr-isolate tabular-nums">@Model.AssetKey</span>
+    </div>
+
+    @if (Model.BaseFields != null && Model.BaseFields.Count > 0)
+    {
+        <div class="p-3 pt-0">
+            <div class="kv-grid">
+                @foreach (BaseFieldDisplayItem bf in Model.BaseFields)
+                {
+                    <div class="kv-tile" style="background-color: rgba(255, 255, 255, 0.08);">
+                        <span class="kv-tile__label" style="color: var(--color-primary-fixed-dim);">@bf.FieldName</span>
+                        <span class="kv-tile__value text-white" title="@bf.DisplayValue">
+                            @(string.IsNullOrWhiteSpace(bf.DisplayValue) ? "—" : bf.DisplayValue)
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    <div class="asset-hero-banner__bar">
+        <span>تعداد کل سوابق ثبت‌شده:</span>
+        <strong class="tabular-nums">@Model.InspectionHistory.Count</strong>
+    </div>
+</section>
+
+<section class="hse-card hse-card-lg">
+    <h2 class="h6 fw-bold mb-3">ثبت بازرسی جدید</h2>
+
+    @using (Html.BeginForm("SubmitInspection", "Scan", FormMethod.Post, new { enctype = "multipart/form-data", @class = "hse-form-grid" }))
+    {
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="indicator" value="@Model.Indicator" />
+
+        foreach (CustomFieldInputDefinition field in Model.CustomFields)
+        {
+            string fieldName = "field_" + field.CustomFieldId;
+            string reqAttr = field.IsRequired ? "required" : "";
+            string labelClass = field.IsRequired ? "hse-label hse-label--required" : "hse-label";
+
+            <div class="hse-field">
+                <label class="@labelClass" for="@fieldName">@field.Label</label>
+
+                @if (field.FieldType == CustomFieldType.Text)
+                {
+                    <input type="text" id="@fieldName" name="@fieldName" class="hse-input" @reqAttr />
+                }
+                else if (field.FieldType == CustomFieldType.Number)
+                {
+                    <input type="number" step="any" id="@fieldName" name="@fieldName" class="hse-input tabular-nums" @reqAttr />
+                }
+                else if (field.FieldType == CustomFieldType.Date)
+                {
+                    <div class="jalali-date-wrap">
+                        <input type="text"
+                               id="@fieldName"
+                               name="@fieldName"
+                               class="hse-input jalali-date-input"
+                               placeholder="@(field.IsGregorianDate ? "YYYY-MM-DD" : "1405/01/01")"
+                               autocomplete="off"
+                               @(field.IsGregorianDate ? "" : "data-jdp")
+                               @reqAttr />
+                        <span class="jalali-date-wrap__icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                        </span>
+                    </div>
+                }
+                else if (field.FieldType == CustomFieldType.Boolean)
+                {
+                    string trueLabel = string.IsNullOrWhiteSpace(field.BooleanTrueLabel) ? "بله" : field.BooleanTrueLabel;
+                    string falseLabel = string.IsNullOrWhiteSpace(field.BooleanFalseLabel) ? "خیر" : field.BooleanFalseLabel;
+                    string trueId = fieldName + "_true";
+                    string falseId = fieldName + "_false";
+
+                    <div class="bool-toggle-group">
+                        <label for="@trueId" class="m-0">
+                            <input type="radio" id="@trueId" name="@fieldName" value="true" @(field.IsRequired ? "required" : "") />
+                            <span class="bool-toggle-option bool-toggle-option--positive">@trueLabel</span>
+                        </label>
+                        <label for="@falseId" class="m-0">
+                            <input type="radio" id="@falseId" name="@fieldName" value="false" />
+                            <span class="bool-toggle-option bool-toggle-option--negative">@falseLabel</span>
+                        </label>
+                    </div>
+                }
+                else if (field.FieldType == CustomFieldType.Attachment)
+                {
+                    string fileFieldName = "file_" + field.CustomFieldId;
+                    <div class="file-dropzone js-file-dropzone">
+                        <input type="file" id="@fileFieldName" name="@fileFieldName" @reqAttr />
+                        <div class="file-dropzone__title js-file-dropzone-label">برای انتخاب فایل کلیک کنید یا فایل را اینجا رها کنید</div>
+                        <div class="file-dropzone__hint">تصویر، PDF یا مستندات بازرسی</div>
+                    </div>
+                }
+                else if (field.FieldType == CustomFieldType.Select)
+                {
+                    <select id="@fieldName" name="@fieldName" class="hse-select hse-select2" @reqAttr>
+                        <option value="">انتخاب کنید...</option>
+                        @foreach (SelectOptionDto opt in field.Options)
+                        {
+                            <option value="@opt.Value">@opt.Text</option>
+                        }
+                    </select>
+                }
+                else if (field.FieldType == CustomFieldType.MultiSelect)
+                {
+                    <select id="@fieldName" name="@fieldName" class="hse-select hse-select2" multiple="multiple" @reqAttr>
+                        @foreach (SelectOptionDto opt in field.Options)
+                        {
+                            <option value="@opt.Value">@opt.Text</option>
+                        }
+                    </select>
+                }
+            </div>
+        }
+
+        <div class="hse-field">
+            <label class="hse-label" for="notes">توضیحات تکمیلی بازرس</label>
+            <textarea id="notes" name="notes" class="hse-textarea" placeholder="در صورت نیاز یادداشت یا شرح وضعیت را وارد کنید...">@Model.Notes</textarea>
+        </div>
+
+        <button type="submit" class="btn-hse btn-hse-accent btn-hse-block">
+            ثبت نهایی بازرسی
+        </button>
+    }
+</section>
+
+<section class="d-flex flex-column gap-2">
+    <h2 class="h6 fw-bold mb-1">تاریخچه بازرسی‌ها</h2>
+
+    @if (Model.InspectionHistory == null || Model.InspectionHistory.Count == 0)
+    {
+        <div class="hse-card text-muted small">هنوز هیچ سابقه‌ای برای این تجهیز ثبت نشده است.</div>
+    }
+    else
+    {
+        <div class="inspection-timeline">
+            @foreach (InspectionRecordSummary rec in Model.InspectionHistory)
+            {
+                <article class="history-card">
+                    <div class="history-card__header">
+                        <span class="history-card__inspector">@(string.IsNullOrWhiteSpace(rec.InspectorFullName) ? rec.InspectorUsername : rec.InspectorFullName)</span>
+                        <span class="date-pill">@rec.InspectedAtJalali</span>
+                    </div>
+
+                    @if (rec.Values != null && rec.Values.Count > 0)
+                    {
+                        <div class="status-list">
+                            @foreach (InspectionFieldValueSummary val in rec.Values)
+                            {
+                                <div class="status-list__row">
+                                    <span class="status-list__label">@val.FieldLabel</span>
+                                    @if (val.FieldType == CustomFieldType.Attachment && val.ValueId > 0 && !string.IsNullOrWhiteSpace(val.StoredFileName))
+                                    {
+                                        <a href="@Url.Action("DownloadAttachment", "Scan", new { id = val.ValueId })" class="btn-hse btn-hse-secondary py-1 px-2" style="min-height: 30px; font-size: 0.75rem;">
+                                            @(string.IsNullOrWhiteSpace(val.OriginalFileName) ? "دانلود پیوست" : val.OriginalFileName)
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="fw-semibold small">@(string.IsNullOrWhiteSpace(val.DisplayValue) ? "—" : val.DisplayValue)</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(rec.Notes))
+                    {
+                        <p class="history-card__notes"><strong>توضیحات:</strong> @rec.Notes</p>
+                    }
+                </article>
+            }
+        </div>
+    }
+</section>

@@ -1,0 +1,123 @@
+@model PublicScanViewModel
+@{
+    ViewBag.Title = "وضعیت تجهیز " + Model.Indicator;
+}
+
+<form action="@Url.RouteUrl("Lookup")" method="get" class="qr-lookup-bar js-indicator-lookup-form" data-lookup-json-url="@Url.Action("LookupJson", "Scan")">
+    <div class="qr-lookup-bar__input-wrap">
+        <input type="text"
+               name="indicator"
+               class="qr-lookup-bar__input js-indicator-lookup-input"
+               value="@Model.Indicator"
+               placeholder="جستجوی شناسه دیگر (در صورت خرابی QR)"
+               autocomplete="off"
+               required />
+    </div>
+    <button type="submit" class="btn-hse btn-hse-secondary">جستجو</button>
+</form>
+<div class="js-lookup-feedback d-none"></div>
+
+<section class="hse-card scan-asset-card">
+    <div class="scan-asset-card__header">
+        <div class="scan-asset-card__meta">
+            <div class="scan-asset-card__top-row">
+                <span class="indicator-pill">@Model.Indicator</span>
+                <span class="badge bg-light text-dark border">@Model.DataSourceName</span>
+            </div>
+            <div class="small text-muted mt-1">
+                کلید یکتا: <span class="ltr-isolate tabular-nums fw-semibold">@Model.AssetKey</span>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.PublicBaseFields != null && Model.PublicBaseFields.Count > 0)
+    {
+        <div>
+            <h2 class="h6 fw-bold mb-2">مشخصات عمومی تجهیز</h2>
+            <div class="kv-grid">
+                @foreach (BaseFieldDisplayItem field in Model.PublicBaseFields)
+                {
+                    <div class="kv-tile">
+                        <span class="kv-tile__label">@field.FieldName</span>
+                        <span class="kv-tile__value" title="@field.DisplayValue">
+                            @(string.IsNullOrWhiteSpace(field.DisplayValue) ? "—" : field.DisplayValue)
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</section>
+
+<section class="hse-card">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h6 fw-bold mb-0">آخرین وضعیت بازرسی</h2>
+        @if (Model.LatestInspection != null)
+        {
+            <span class="date-pill">@Model.LatestInspection.InspectedAtJalali</span>
+        }
+    </div>
+
+    @if (Model.LatestInspection == null)
+    {
+        <div class="text-muted small py-2">هنوز هیچ بازرسی برای این تجهیز ثبت نشده است.</div>
+    }
+    else
+    {
+        <div class="small text-muted mb-2">
+            بازرس: <strong class="text-dark">@(string.IsNullOrWhiteSpace(Model.LatestInspection.InspectorFullName) ? Model.LatestInspection.InspectorUsername : Model.LatestInspection.InspectorFullName)</strong>
+        </div>
+
+        if (Model.LatestInspection.Values != null && Model.LatestInspection.Values.Count > 0)
+        {
+            <div class="status-list">
+                @foreach (InspectionFieldValueSummary val in Model.LatestInspection.Values)
+                {
+                    <div class="status-list__row">
+                        <span class="status-list__label">@val.FieldLabel</span>
+                        @if (val.FieldType == CustomFieldType.Attachment && val.ValueId > 0 && !string.IsNullOrWhiteSpace(val.StoredFileName))
+                        {
+                            <a href="@Url.Action("DownloadAttachment", "Scan", new { id = val.ValueId })" class="btn-hse btn-hse-secondary py-1 px-2" style="min-height: 32px; font-size: 0.75rem;">
+                                دانلود فایل (@(string.IsNullOrWhiteSpace(val.OriginalFileName) ? "پیوست" : val.OriginalFileName))
+                            </a>
+                        }
+                        else if (val.FieldType == CustomFieldType.Boolean)
+                        {
+                            <span class="status-badge status-badge--info">@(string.IsNullOrWhiteSpace(val.DisplayValue) ? "—" : val.DisplayValue)</span>
+                        }
+                        else
+                        {
+                            <span class="fw-semibold small">@(string.IsNullOrWhiteSpace(val.DisplayValue) ? "—" : val.DisplayValue)</span>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-muted small">فیلد عمومی برای نمایش در آخرین بازرسی وجود ندارد.</div>
+        }
+    }
+</section>
+
+@if (Model.IsUserAuthenticated)
+{
+    if (Model.CanInspect)
+    {
+        <a href="@Url.Action("Personnel", "Scan", new { indicator = Model.Indicator })" class="cta-authorized">
+            <span>مشاهده سوابق و ثبت اطلاعات جدید</span>
+        </a>
+    }
+    else
+    {
+        <div class="alert alert-warning small mb-0" role="alert">
+            شما مجوز ثبت بازرسی برای این دسته از تجهیزات را ندارید.
+        </div>
+    }
+}
+else
+{
+    <a href="@Url.Action("Login", "Account", new { returnUrl = Url.Action("Personnel", "Scan", new { indicator = Model.Indicator }) })" class="cta-authorized">
+        <span>ورود پرسنل برای مشاهده سوابق و ثبت بازرسی جدید</span>
+    </a>
+}

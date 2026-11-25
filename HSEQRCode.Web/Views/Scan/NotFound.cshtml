@@ -1,0 +1,42 @@
+@{
+    ViewBag.Title = "تجهیز یافت نشد";
+    string indicator = ViewBag.NotFoundIndicator as string;
+}
+
+<div class="hse-card hse-card-lg text-center">
+    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 60px; height: 60px; background: var(--status-danger-bg); color: var(--status-danger-text);">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+    </div>
+
+    <h1 class="h5 fw-bold mb-2">تجهیزی با این شناسه یافت نشد</h1>
+    @if (!string.IsNullOrWhiteSpace(indicator))
+    {
+        <p class="small text-muted mb-3">
+            شناسه جستجو شده: <span class="indicator-pill">@indicator</span>
+        </p>
+    }
+    else
+    {
+        <p class="small text-muted mb-3">لطفاً کد شناسه تجهیز را بررسی کرده و دوباره تلاش کنید.</p>
+    }
+
+    <form action="@Url.RouteUrl("Lookup")" method="get" class="qr-lookup-bar js-indicator-lookup-form mb-3" data-lookup-json-url="@Url.Action("LookupJson", "Scan")">
+        <div class="qr-lookup-bar__input-wrap">
+            <input type="text"
+                   name="indicator"
+                   class="qr-lookup-bar__input js-indicator-lookup-input"
+                   value="@indicator"
+                   placeholder="شناسه تجهیز را وارد کنید..."
+                   autocomplete="off"
+                   required />
+        </div>
+        <button type="submit" class="btn-hse btn-hse-primary">جستجوی مجدد</button>
+    </form>
+    <div class="js-lookup-feedback d-none mb-3"></div>
+
+    <a href="@Url.Action("Index", "Scan")" class="btn-hse btn-hse-secondary">بازگشت به صفحه اصلی</a>
+</div>

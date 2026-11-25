@@ -1,0 +1,94 @@
+@model AdminDataSourceListViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "منابع داده و تجهیزات";
+}
+
+<section class="admin-hero-banner">
+    <div>
+        <h1 class="h4 fw-bold text-white mb-1">مدیریت منابع داده تجهیزات</h1>
+        <p class="small text-white-50 mb-0">اتصال نماهای SQL، پیکربندی فیلدهای عمومی و سفارشی، تولید شناسه‌های QR و مدیریت پرسنل مجاز</p>
+    </div>
+    <a href="@Url.Action("CreateDataSource", "Admin")" class="btn-hse btn-hse-accent">
+        + اتصال نمای SQL جدید
+    </a>
+</section>
+
+<div class="hse-card">
+    @if (Model.DataSources == null || Model.DataSources.Count == 0)
+    {
+        <div class="text-center py-4 text-muted">
+            <p class="mb-3">هنوز هیچ منبع داده‌ای ثبت نشده است.</p>
+            <a href="@Url.Action("CreateDataSource", "Admin")" class="btn-hse btn-hse-primary">ایجاد اولین منبع داده</a>
+        </div>
+    }
+    else
+    {
+        <div class="rtl-table-wrap">
+            <table class="rtl-table">
+                <thead>
+                    <tr>
+                        <th>عنوان</th>
+                        <th>نمای SQL</th>
+                        <th>نوع</th>
+                        <th>وضعیت</th>
+                        <th>تجهیزات / QR</th>
+                        <th>فیلد سفارشی</th>
+                        <th>پرسنل مجاز</th>
+                        <th>تاریخ ایجاد</th>
+                        <th>عملیات و تنظیمات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (DataSourceSummaryItem ds in Model.DataSources)
+                    {
+                        <tr>
+                            <td class="fw-bold">@ds.Name</td>
+                            <td><code class="ltr-isolate">@ds.ViewName</code></td>
+                            <td>
+                                @if (ds.IsEav)
+                                {
+                                    <span class="status-badge status-badge--info">EAV</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-dark border">جدول/نمای مسطح</span>
+                                }
+                            </td>
+                            <td>
+                                @if (ds.IsActive)
+                                {
+                                    <span class="status-badge status-badge--healthy">فعال</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge status-badge--danger">غیرفعال</span>
+                                }
+                            </td>
+                            <td class="tabular-nums fw-semibold">@ds.AssetIndicatorCount</td>
+                            <td class="tabular-nums fw-semibold">@ds.CustomFieldCount</td>
+                            <td class="tabular-nums fw-semibold">@ds.PersonnelCount</td>
+                            <td class="tabular-nums small text-muted">@ds.CreatedAtJalali</td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <a href="@Url.Action("ConfigureBaseFields", "Admin", new { id = ds.Id })" class="btn btn-sm btn-outline-primary">فیلدهای پایه</a>
+                                    <a href="@Url.Action("CustomFields", "Admin", new { id = ds.Id })" class="btn btn-sm btn-outline-secondary">فیلدهای سفارشی</a>
+                                    <a href="@Url.Action("Indicators", "Admin", new { id = ds.Id })" class="btn btn-sm btn-outline-dark">شناسه و QR</a>
+                                    <a href="@Url.Action("Personnel", "Admin", new { id = ds.Id })" class="btn btn-sm btn-outline-success">پرسنل</a>
+                                    <a href="@Url.Action("PrintQrSheet", "Admin", new { id = ds.Id, mode = "A4" })" class="btn btn-sm btn-outline-info">چاپ QR</a>
+                                    @using (Html.BeginForm("ToggleDataSourceActive", "Admin", new { id = ds.Id }, FormMethod.Post, new { @class = "d-inline m-0" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm @(ds.IsActive ? "btn-outline-warning" : "btn-outline-success")">
+                                            @(ds.IsActive ? "غیرفعال‌سازی" : "فعال‌سازی")
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

@@ -1,0 +1,89 @@
+@model AdminDataSourceConfigViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "پیکربندی فیلدهای پایه - " + Model.DataSourceName;
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <div>
+        <h1 class="h4 fw-bold mb-1">پیکربندی فیلدهای پایه: @Model.DataSourceName</h1>
+        <div class="small text-muted">نمای SQL: <code class="ltr-isolate">@Model.ViewName</code> @(Model.IsEav ? "(مدل EAV)" : "(مدل مسطح)")</div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="@Url.Action("CustomFields", "Admin", new { id = Model.DataSourceId })" class="btn-hse btn-hse-secondary">فیلدهای سفارشی</a>
+        <a href="@Url.Action("Indicators", "Admin", new { id = Model.DataSourceId })" class="btn-hse btn-hse-secondary">شناسه و QR</a>
+        <a href="@Url.Action("Index", "Admin")" class="btn-hse btn-hse-secondary">بازگشت</a>
+    </div>
+</div>
+
+@using (Html.BeginForm("ConfigureBaseFields", "Admin", FormMethod.Post, new { @class = "hse-form-grid" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.DataSourceId)
+
+    <div class="admin-grid">
+        <div class="admin-col-6">
+            <div class="hse-card h-100">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="step-badge">1</span>
+                    <div>
+                        <h2 class="h6 fw-bold mb-0">فیلدهای عمومی در صفحه اسکن</h2>
+                        <div class="small text-muted">فقط فیلدهای انتخاب‌شده برای عموم (بدون ورود) نمایش داده می‌شوند.</div>
+                    </div>
+                </div>
+
+                @if (Model.AvailableBaseFields.Count == 0)
+                {
+                    <div class="text-muted small">فیلد پایه‌ای در این نما یافت نشد.</div>
+                }
+                else
+                {
+                    <div class="visibility-matrix">
+                        @foreach (string field in Model.AvailableBaseFields)
+                        {
+                            bool isChecked = Model.SelectedPublicBaseFields.Contains(field);
+                            <label class="visibility-row" style="cursor: pointer;">
+                                <span class="fw-semibold">@field</span>
+                                <input type="checkbox" name="SelectedPublicBaseFields" value="@field" class="form-check-input m-0" @(isChecked ? "checked" : "") />
+                            </label>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="admin-col-6">
+            <div class="hse-card h-100">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="step-badge">2</span>
+                    <div>
+                        <h2 class="h6 fw-bold mb-0">فیلدهای زیرنویس برچسب QR</h2>
+                        <div class="small text-muted">این فیلدها هنگام چاپ برچسب QR زیر کد شناسه چاپ می‌شوند.</div>
+                    </div>
+                </div>
+
+                @if (Model.AvailableBaseFields.Count == 0)
+                {
+                    <div class="text-muted small">فیلد پایه‌ای در این نما یافت نشد.</div>
+                }
+                else
+                {
+                    <div class="visibility-matrix">
+                        @foreach (string field in Model.AvailableBaseFields)
+                        {
+                            bool isChecked = Model.SelectedLabelCaptionFields.Contains(field);
+                            <label class="visibility-row" style="cursor: pointer;">
+                                <span class="fw-semibold">@field</span>
+                                <input type="checkbox" name="SelectedLabelCaptionFields" value="@field" class="form-check-input m-0" @(isChecked ? "checked" : "") />
+                            </label>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+        <button type="submit" class="btn-hse btn-hse-primary">ذخیره تنظیمات فیلدهای پایه</button>
+    </div>
+}

@@ -1,0 +1,86 @@
+@{
+    string currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
+}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(ViewBag.Title != null ? ViewBag.Title + " | پنل مدیریت HSE" : "پنل مدیریت سامانه HSE")</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@majidh1/jalalidatepicker/dist/jalalidatepicker.min.css" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/site-rtl.css")" />
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+    <div class="admin-shell">
+        <aside class="admin-sidebar no-print">
+            <div class="admin-sidebar__brand">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <path d="M9 12l2 2 4-4" />
+                </svg>
+                <span>مدیریت سامانه HSE</span>
+            </div>
+
+            <nav class="admin-nav" aria-label="منوی مدیریت">
+                <a href="@Url.Action("Index", "Admin")" class="admin-nav__link @(currentAction == "Index" ? "is-active" : "")">
+                    <span>منابع داده و تجهیزات</span>
+                </a>
+                <a href="@Url.Action("CreateDataSource", "Admin")" class="admin-nav__link @(currentAction == "CreateDataSource" ? "is-active" : "")">
+                    <span>اتصال نمای SQL جدید</span>
+                </a>
+                <a href="@Url.Action("Index", "Scan")" class="admin-nav__link">
+                    <span>صفحه اسکن و جستجوی عمومی</span>
+                </a>
+            </nav>
+
+            <div class="mt-auto pt-4 d-none d-lg-block">
+                <div class="small text-white-50 mb-2">کاربر: @User.Identity.Name</div>
+                @using (Html.BeginForm("Logout", "Account", FormMethod.Post, new { @class = "m-0" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm btn-outline-light w-100">خروج از حساب</button>
+                }
+            </div>
+        </aside>
+
+        <div class="admin-content-wrap">
+            <header class="admin-header no-print">
+                <div class="fw-bold fs-6">@(ViewBag.Title ?? "پنل مدیریت")</div>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="@Url.Action("Index", "Scan")" class="btn-hse btn-hse-secondary btn-sm py-1 px-3" style="min-height: 36px;">نمای اسکن عمومی</a>
+                    @using (Html.BeginForm("Logout", "Account", FormMethod.Post, new { @class = "d-inline d-lg-none m-0" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-sm btn-outline-danger">خروج</button>
+                    }
+                </div>
+            </header>
+
+            <main class="admin-main">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success no-print mb-0" role="alert">@TempData["SuccessMessage"]</div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger no-print mb-0" role="alert">@TempData["ErrorMessage"]</div>
+                }
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@majidh1/jalalidatepicker/dist/jalalidatepicker.min.js"></script>
+    <script src="@Url.Content("~/Scripts/hse-app.js")"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

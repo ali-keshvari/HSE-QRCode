@@ -1,0 +1,96 @@
+@model AdminDataSourceCreateViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "اتصال نمای SQL جدید";
+}
+
+<div class="d-flex align-items-center justify-content-between">
+    <h1 class="h4 fw-bold mb-0">اتصال نمای SQL جدید</h1>
+    <a href="@Url.Action("Index", "Admin")" class="btn-hse btn-hse-secondary">بازگشت به لیست</a>
+</div>
+
+<div class="hse-card hse-card-lg">
+    @using (Html.BeginForm("CreateDataSource", "Admin", FormMethod.Post, new { @class = "hse-form-grid" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "alert alert-danger py-2 px-3 small mb-0" })
+
+        <div class="hse-form-grid hse-form-grid--2col">
+            <div class="hse-field">
+                <label class="hse-label hse-label--required" for="Name">نام منبع داده (فارسی)</label>
+                @Html.TextBoxFor(m => m.Name, new { @class = "hse-input", placeholder = "مثال: کپسول‌های آتش‌نشانی" })
+                @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger small" })
+            </div>
+
+            <div class="hse-field">
+                <label class="hse-label hse-label--required" for="ViewName">نمای SQL (View)</label>
+                <div class="d-flex gap-2">
+                    <select id="ViewName" name="ViewName" class="hse-select hse-select2 js-view-selector" data-columns-url="@Url.Content("~/api/meta/view-columns")">
+                        <option value="">انتخاب نمای SQL...</option>
+                        @foreach (ViewMetadataDto v in Model.AvailableViews)
+                        {
+                            <option value="@v.FullViewName" @(string.Equals(Model.ViewName, v.FullViewName, System.StringComparison.OrdinalIgnoreCase) ? "selected" : "")>@v.FullViewName</option>
+                        }
+                    </select>
+                    <button type="button" class="btn-hse btn-hse-secondary flex-shrink-0 js-fetch-view-columns" data-target-select="#ViewName" data-columns-url="@Url.Content("~/api/meta/view-columns")">
+                        دریافت ستون‌ها
+                    </button>
+                </div>
+                @Html.ValidationMessageFor(m => m.ViewName, "", new { @class = "text-danger small" })
+            </div>
+        </div>
+
+        <div id="viewColumnsPreview" class="p-3 rounded-3 border bg-light d-none">
+            <div class="small fw-bold mb-2">ستون‌های شناسایی‌شده در نما (برای انتخاب سریع کلیک کنید):</div>
+            <div class="d-flex flex-wrap gap-1 js-view-columns-badges"></div>
+        </div>
+
+        <div class="hse-field">
+            <label class="hse-label hse-label--required" for="UniqueKeyColumn">ستون کلید یکتای تجهیز (UniqueKeyColumn)</label>
+            @Html.TextBoxFor(m => m.UniqueKeyColumn, new { @class = "hse-input ltr-isolate text-start js-column-target", placeholder = "مثال: AssetId یا Code" })
+            @Html.ValidationMessageFor(m => m.UniqueKeyColumn, "", new { @class = "text-danger small" })
+        </div>
+
+        <div class="visibility-row">
+            <div>
+                <div class="fw-bold">نمای مدل EAV (سطر-مقدار مانند gen.*)</div>
+                <div class="small text-muted">در صورتی که ویژگی‌های تجهیز به صورت سطری در نما ذخیره شده‌اند، این گزینه را فعال کنید.</div>
+            </div>
+            <label class="hse-switch">
+                @Html.CheckBoxFor(m => m.IsEav, new { @class = "js-eav-toggle" })
+                <span class="hse-switch__slider"></span>
+            </label>
+        </div>
+
+        <div id="eavColumnsPanel" class="p-3 rounded-3 border bg-light @(Model.IsEav ? "" : "d-none")">
+            <h2 class="h6 fw-bold mb-3">نگاشت ستون‌های EAV</h2>
+            <div class="hse-form-grid hse-form-grid--2col">
+                <div class="hse-field">
+                    <label class="hse-label" for="EavAssetIdColumn">ستون شناسه تجهیز (EavAssetIdColumn)</label>
+                    @Html.TextBoxFor(m => m.EavAssetIdColumn, new { @class = "hse-input ltr-isolate text-start", placeholder = "AssetId" })
+                </div>
+                <div class="hse-field">
+                    <label class="hse-label" for="EavFieldIdColumn">ستون شناسه فیلد (EavFieldIdColumn)</label>
+                    @Html.TextBoxFor(m => m.EavFieldIdColumn, new { @class = "hse-input ltr-isolate text-start", placeholder = "FieldId" })
+                </div>
+                <div class="hse-field">
+                    <label class="hse-label hse-label--required" for="EavFieldNameColumn">ستون نام فیلد (EavFieldNameColumn)</label>
+                    @Html.TextBoxFor(m => m.EavFieldNameColumn, new { @class = "hse-input ltr-isolate text-start", placeholder = "FieldName" })
+                </div>
+                <div class="hse-field">
+                    <label class="hse-label hse-label--required" for="EavFieldTypeColumn">ستون نوع فیلد (EavFieldTypeColumn)</label>
+                    @Html.TextBoxFor(m => m.EavFieldTypeColumn, new { @class = "hse-input ltr-isolate text-start", placeholder = "FieldType" })
+                </div>
+                <div class="hse-field">
+                    <label class="hse-label" for="EavDisplayOrderColumn">ستون ترتیب نمایش (EavDisplayOrderColumn)</label>
+                    @Html.TextBoxFor(m => m.EavDisplayOrderColumn, new { @class = "hse-input ltr-isolate text-start", placeholder = "DisplayOrder" })
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-2">
+            <a href="@Url.Action("Index", "Admin")" class="btn-hse btn-hse-secondary">انصراف</a>
+            <button type="submit" class="btn-hse btn-hse-primary">ذخیره و ادامه پیکربندی</button>
+        </div>
+    }
+</div>

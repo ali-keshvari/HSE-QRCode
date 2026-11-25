@@ -1,0 +1,48 @@
+@model LoginViewModel
+@{
+    ViewBag.Title = "ورود پرسنل و مدیران";
+}
+
+<div class="hse-card hse-card-lg mx-auto w-100 mt-3" style="max-width: 440px;">
+    <div class="text-center mb-4">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 56px; height: 56px; background: var(--color-primary-fixed); color: var(--color-on-primary-fixed);">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+        </div>
+        <h1 class="h4 fw-bold mb-1">ورود به سامانه بازرسی HSE</h1>
+        <p class="text-muted small mb-0">برای ثبت بازرسی جدید و مشاهده سوابق کامل وارد شوید</p>
+    </div>
+
+    @using (Html.BeginForm("Login", "Account", FormMethod.Post, new { @class = "hse-form-grid" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(m => m.ReturnUrl)
+
+        @Html.ValidationSummary(true, "", new { @class = "alert alert-danger py-2 px-3 small mb-0" })
+
+        <div class="hse-field">
+            @Html.LabelFor(m => m.Username, new { @class = "hse-label hse-label--required" })
+            @Html.TextBoxFor(m => m.Username, new { @class = "hse-input ltr-isolate text-start", placeholder = "نام کاربری", autocomplete = "username", autofocus = "autofocus" })
+            @Html.ValidationMessageFor(m => m.Username, "", new { @class = "text-danger small" })
+        </div>
+
+        <div class="hse-field">
+            @Html.LabelFor(m => m.Password, new { @class = "hse-label hse-label--required" })
+            @Html.PasswordFor(m => m.Password, new { @class = "hse-input ltr-isolate text-start", placeholder = "رمز عبور", autocomplete = "current-password" })
+            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger small" })
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between">
+            <label class="d-inline-flex align-items-center gap-2 small" style="cursor: pointer;">
+                @Html.CheckBoxFor(m => m.RememberMe, new { @class = "form-check-input m-0" })
+                <span>مرا به خاطر بسپار</span>
+            </label>
+        </div>
+
+        <button type="submit" class="btn-hse btn-hse-primary btn-hse-block mt-2">
+            ورود به حساب کاربری
+        </button>
+    }
+</div>

@@ -1,0 +1,304 @@
+/* ==========================================================================
+   HSE-QRCode — Printable QR Labels Stylesheet (A4 Grid & Thermal Labels)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Screen Preview Styles (Before Printing)
+   -------------------------------------------------------------------------- */
+
+.print-toolbar {
+  background-color: var(--color-surface-card, #ffffff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-xl, 0.75rem);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-card, 0 1px 3px rgba(15, 23, 42, 0.06));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.print-meta-bar {
+  max-width: 210mm;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted, #45464d);
+}
+
+/* A4 Sheet Preview Container */
+.print-sheet-a4 {
+  width: 100%;
+  max-width: 210mm;
+  margin: 0 auto;
+  background-color: #ffffff;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-xl, 0.75rem);
+  padding: 12mm;
+  box-shadow: var(--shadow-modal, 0 10px 15px -3px rgba(15, 23, 42, 0.1));
+}
+
+/* 3-Column A4 Label Grid (3x6, 3x7, 3x8) */
+.qr-label-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4mm;
+}
+
+.qr-label-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3.5mm 3mm;
+  border: 1px dashed #cbd5e1;
+  border-radius: 0.375rem;
+  background-color: #ffffff;
+  color: #000000;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.qr-label-grid--3x6 .qr-label-card {
+  min-height: 42mm;
+}
+
+.qr-label-grid--3x7 .qr-label-card {
+  min-height: 36mm;
+}
+
+.qr-label-grid--3x8 .qr-label-card {
+  min-height: 31mm;
+}
+
+.qr-label-img {
+  display: block;
+  width: 24mm;
+  height: 24mm;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  margin-bottom: 2mm;
+}
+
+.qr-label-code {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 0.875rem;
+  line-height: 1.2;
+  letter-spacing: 0.03em;
+  color: #0f172a;
+  margin-bottom: 1mm;
+}
+
+.qr-label-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #191c1e;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qr-label-caption {
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  color: #45464d;
+  margin-top: 0.5mm;
+}
+
+/* Single Thermal Label Preview Container */
+.print-sheet-thermal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6mm;
+  margin: 0 auto;
+}
+
+.thermal-label {
+  background-color: #ffffff;
+  border: 1px dashed #94a3b8;
+  border-radius: 0.25rem;
+  color: #000000;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2.5mm;
+  padding: 2mm 2.5mm;
+  box-shadow: var(--shadow-card, 0 1px 3px rgba(15, 23, 42, 0.06));
+  page-break-after: always;
+  break-after: page;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.thermal-label--50x30 {
+  width: 50mm;
+  height: 30mm;
+}
+
+.thermal-label--60x40 {
+  width: 60mm;
+  height: 40mm;
+}
+
+.thermal-label__qr {
+  width: 22mm;
+  height: 22mm;
+  flex-shrink: 0;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.thermal-label--60x40 .thermal-label__qr {
+  width: 28mm;
+  height: 28mm;
+}
+
+.thermal-label__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: right;
+  gap: 1mm;
+}
+
+.thermal-label__code {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  font-size: 0.8125rem;
+  line-height: 1.15;
+  color: #000000;
+}
+
+.thermal-label__caption {
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #000000;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* --------------------------------------------------------------------------
+   2. @page Rules & @media print Overrides
+   -------------------------------------------------------------------------- */
+
+@page {
+  size: A4 portrait;
+  margin: 10mm;
+}
+
+@page thermal-50x30 {
+  size: 50mm 30mm;
+  margin: 1.5mm;
+}
+
+@page thermal-60x40 {
+  size: 60mm 40mm;
+  margin: 2mm;
+}
+
+@media print {
+  html,
+  body {
+    width: auto;
+    height: auto;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide all navigation, toolbars, buttons, and non-printable chrome */
+  .admin-sidebar,
+  .admin-header,
+  .mobile-top-header,
+  .mobile-bottom-nav,
+  .print-toolbar,
+  .print-meta-bar,
+  .no-print,
+  header,
+  nav,
+  aside,
+  button {
+    display: none !important;
+  }
+
+  .admin-content-wrap,
+  .admin-main,
+  .mobile-main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+  }
+
+  .print-sheet-a4 {
+    max-width: none;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .qr-label-grid {
+    gap: 3mm;
+  }
+
+  .qr-label-card {
+    border: 1px dashed #94a3b8;
+    box-shadow: none;
+  }
+
+  .qr-label-code,
+  .qr-label-title,
+  .qr-label-caption {
+    color: #000000 !important;
+  }
+
+  /* Thermal Print Mode */
+  .print-mode-thermal-50x30 .print-sheet-thermal {
+    page: thermal-50x30;
+    gap: 0;
+  }
+
+  .print-mode-thermal-60x40 .print-sheet-thermal {
+    page: thermal-60x40;
+    gap: 0;
+  }
+
+  .thermal-label {
+    border: none;
+    box-shadow: none;
+    margin: 0;
+  }
+
+  .thermal-label:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+}

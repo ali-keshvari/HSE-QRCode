@@ -1,0 +1,118 @@
+@model PrintQrSheetViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "چاپ برچسب‌های QR - " + Model.DataSourceName;
+    bool isThermal = string.Equals(Model.LayoutMode, "Thermal", System.StringComparison.OrdinalIgnoreCase);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="@Url.Content("~/Content/print-qr.css")" />
+}
+
+<div class="print-toolbar no-print">
+    <div>
+        <h1 class="h5 fw-bold mb-1">چاپ برچسب‌های QR: @Model.DataSourceName</h1>
+        <div class="small text-muted">تعداد کل برچسب‌ها: <strong class="tabular-nums">@Model.Items.Count</strong></div>
+    </div>
+
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <a href="@Url.Action("PrintQrSheet", "Admin", new { id = Model.DataSourceId, mode = "A4" })"
+           class="btn-hse @(!isThermal ? "btn-hse-primary" : "btn-hse-secondary")">
+            چیدمان صفحه A4
+        </a>
+        <a href="@Url.Action("PrintQrSheet", "Admin", new { id = Model.DataSourceId, mode = "Thermal" })"
+           class="btn-hse @(isThermal ? "btn-hse-primary" : "btn-hse-secondary")">
+            لیبل‌پرینتر حرارتی
+        </a>
+
+        @if (!isThermal)
+        {
+            <select id="a4GridSizeSelect" class="hse-select w-auto js-a4-grid-select" aria-label="تراکم شبکه A4">
+                <option value="qr-label-grid--3x6" selected>شبکه ۳×۶ (۱۸ برچسب)</option>
+                <option value="qr-label-grid--3x7">شبکه ۳×۷ (۲۱ برچسب)</option>
+                <option value="qr-label-grid--3x8">شبکه ۳×۸ (۲۴ برچسب)</option>
+            </select>
+        }
+        else
+        {
+            <select id="thermalSizeSelect" class="hse-select w-auto js-thermal-size-select" aria-label="ابعاد لیبل حرارتی">
+                <option value="50x30" selected>۵۰×۳۰ میلی‌متر</option>
+                <option value="60x40">۶۰×۴۰ میلی‌متر</option>
+            </select>
+        }
+
+        <button type="button" class="btn-hse btn-hse-accent js-print-sheet-btn">
+            چاپ برچسب‌ها
+        </button>
+        <a href="@Url.Action("Indicators", "Admin", new { id = Model.DataSourceId })" class="btn-hse btn-hse-secondary">
+            بازگشت
+        </a>
+    </div>
+</div>
+
+@if (Model.Items == null || Model.Items.Count == 0)
+{
+    <div class="hse-card text-center py-4 text-muted no-print">
+        هیچ شناسه‌ای برای چاپ وجود ندارد. ابتدا در بخش «شناسه و QR» شناسه‌ها را تولید کنید.
+    </div>
+}
+else if (!isThermal)
+{
+    <div class="print-meta-bar no-print">
+        <span>منبع داده: @Model.DataSourceName</span>
+        <span>قالب: صفحه A4 عمودی</span>
+    </div>
+
+    <div class="print-sheet-a4">
+        <div id="qrLabelGrid" class="qr-label-grid qr-label-grid--3x6">
+            @foreach (PrintQrItemViewModel item in Model.Items)
+            {
+                <div class="qr-label-card">
+                    <img src="data:image/png;base64,@item.QrPngBase64" alt="QR @item.Indicator" class="qr-label-img" />
+                    <div class="qr-label-code">@item.Indicator</div>
+                    @if (item.Captions != null && item.Captions.Count > 0)
+                    {
+                        foreach (KeyValuePair<string, string> cap in item.Captions)
+                        {
+                            if (!string.IsNullOrWhiteSpace(cap.Value))
+                            {
+                                <div class="qr-label-caption">@cap.Key: @cap.Value</div>
+                            }
+                        }
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="print-meta-bar no-print">
+        <span>منبع داده: @Model.DataSourceName</span>
+        <span>قالب: لیبل حرارتی تکی</span>
+    </div>
+
+    <div id="thermalPrintWrapper" class="print-mode-thermal-50x30">
+        <div class="print-sheet-thermal">
+            @foreach (PrintQrItemViewModel item in Model.Items)
+            {
+                <div class="thermal-label thermal-label--50x30 js-thermal-label">
+                    <img src="data:image/png;base64,@item.QrPngBase64" alt="QR @item.Indicator" class="thermal-label__qr" />
+                    <div class="thermal-label__info">
+                        <div class="thermal-label__code">@item.Indicator</div>
+                        @if (item.Captions != null && item.Captions.Count > 0)
+                        {
+                            foreach (KeyValuePair<string, string> cap in item.Captions)
+                            {
+                                if (!string.IsNullOrWhiteSpace(cap.Value))
+                                {
+                                    <div class="thermal-label__caption">@cap.Value</div>
+                                }
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
